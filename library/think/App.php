@@ -172,7 +172,6 @@ class App implements \ArrayAccess
 
         // 应用调试模式
         $this->debug = Env::get('app.app_debug', $this->config('app.app_debug'));
-
         if (!$this->debug) {
             ini_set('display_errors', 'Off');
         } elseif (PHP_SAPI != 'cli') {

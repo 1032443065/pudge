@@ -115,7 +115,7 @@ class Build
         if (empty($list)) {
             // 创建默认的模块目录和文件
             $list = [
-                '__file__' => ['config.php', 'common.php'],
+                '__file__' => ['app.php', 'common.php'],
                 '__dir__'  => ['controller', 'model', 'view'],
             ];
         }
@@ -201,7 +201,7 @@ class Build
      */
     protected function buildCommon($module)
     {
-        $filename = $this->app->getConfigPath() . ($module ? $module . DIRECTORY_SEPARATOR : '') . 'config.php';
+        $filename = $this->app->getConfigPath() . ($module ? $module . DIRECTORY_SEPARATOR : '') . 'app.php';
         if (!is_dir(dirname($filename))) {
             mkdir(dirname($filename), 0755, true);
         }

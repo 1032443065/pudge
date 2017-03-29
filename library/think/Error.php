@@ -36,17 +36,18 @@ class Error
      */
     public static function appException($e)
     {
+
         if (!$e instanceof \Exception) {
             $e = new ThrowableError($e);
         }
 
         self::getExceptionHandler()->report($e);
-
         if (PHP_SAPI == 'cli') {
             self::getExceptionHandler()->renderForConsole(new ConsoleOutput, $e);
         } else {
             self::getExceptionHandler()->render($e)->send();
         }
+
     }
 
     /**
@@ -114,7 +115,6 @@ class Error
                 $handle = new Handle;
             }
         }
-
         return $handle;
     }
 }

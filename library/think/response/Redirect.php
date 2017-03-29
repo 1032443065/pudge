@@ -13,7 +13,7 @@ namespace think\response;
 
 use think\Facade;
 
-class Redirect extends Response
+class Redirect extends \think\Response
 {
 
     protected $options = [];
