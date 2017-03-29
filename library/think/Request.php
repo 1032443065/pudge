@@ -110,7 +110,7 @@ class Request
     // 全局过滤规则
     protected $filter;
     // Hook扩展方法
-    protected static $hook = [];
+    protected $hook = [];
     // 绑定的属性
     protected $bind = [];
     // php://input
