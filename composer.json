@@ -1,23 +1,22 @@
 {
-    "name": "topthink/framework",
-    "description": "the new thinkphp framework",
-    "type": "think-framework",
+    "name": "Rozbo/pudge",
+    "description": "the pudge base on thinkphp framework",
+    "type": "pudge-framework",
     "keywords": [
         "framework",
         "thinkphp",
         "ORM"
     ],
-    "homepage": "http://thinkphp.cn/",
+    "homepage": "http://puck.zz173.com/",
     "license": "Apache-2.0",
     "authors": [
         {
-            "name": "liu21st",
-            "email": "liu21st@gmail.com"
+            "name": "rozbo",
+            "email": "75200306@qq.com"
         }
     ],
     "require": {
-        "php": ">=5.4.0",
-        "topthink/think-installer": "~1.0"
+        "php": ">=7.0.0"
     },
     "require-dev": {
         "phpunit/phpunit": "4.8.*",
