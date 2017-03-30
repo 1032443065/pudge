@@ -16,6 +16,7 @@ namespace traits\controller;
 use think\exception\HttpResponseException;
 use think\Response;
 use think\response\Redirect;
+use think\Facade;
 
 trait Jump
 {
@@ -41,7 +42,7 @@ trait Jump
         if (is_null($url) && isset($_SERVER["HTTP_REFERER"])) {
             $url = $_SERVER["HTTP_REFERER"];
         } elseif ('' !== $url) {
-            $url = (strpos($url, '://') || 0 === strpos($url, '/')) ? $url : Facade::make('url')->build($url);
+            $url = (strpos($url, '://') || 0 === strpos($url, '/')) ? $url : app('url')->build($url);
         }
 
         $result = [
@@ -88,7 +89,7 @@ trait Jump
         if (is_null($url)) {
             $url = Facade::make('request')->isAjax() ? '' : 'javascript:history.back(-1);';
         } elseif ('' !== $url) {
-            $url = (strpos($url, '://') || 0 === strpos($url, '/')) ? $url : Facade::make('url')->build($url);
+            $url = (strpos($url, '://') || 0 === strpos($url, '/')) ? $url :app('url')->build($url);
         }
 
         $result = [
