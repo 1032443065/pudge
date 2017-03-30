@@ -34,7 +34,7 @@ class Route extends Command
 
     protected function buildRouteCache()
     {
-        $files = \think\Config::get('route_config_file');
+        $files = \think\facade\Config::get('route_config_file');
         foreach ($files as $file) {
             if (is_file(Facade::make('app')->getConfigPath() . $file . Facade::make('app')->getConfigExt())) {
                 $config = include Facade::make('app')->getConfigPath() . $file . Facade::make('app')->getConfigExt();

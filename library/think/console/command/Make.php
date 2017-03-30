@@ -11,7 +11,7 @@
 
 namespace think\console\command;
 
-use think\Config;
+use think\facade\Config;
 use think\Facade;
 use think\console\Command;
 use think\console\Input;

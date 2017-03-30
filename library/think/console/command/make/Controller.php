@@ -11,7 +11,7 @@
 
 namespace think\console\command\make;
 
-use think\Config;
+use think\facade\Config;
 use think\console\command\Make;
 use think\console\input\Option;
 
