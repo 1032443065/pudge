@@ -39,6 +39,7 @@ class Db
      */
     public static function connect($config = [], $name = false)
     {
+
         if (false === $name) {
             $name = md5(serialize($config));
         }

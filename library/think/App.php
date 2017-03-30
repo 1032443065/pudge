@@ -155,13 +155,9 @@ class App implements \ArrayAccess
             foreach ($env as $key => $val) {
                 $name = 'PHP_' . strtoupper($key);
                 if (is_array($val)) {
-                    foreach ($val as $k => $v) {
-                        $item = $name . '_' . strtoupper($k);
-                        putenv("$item=$v");
-                    }
-                } else {
-                    putenv("$name=$val");
+                    $val=json_encode($val);
                 }
+                putenv("$name=$val");
             }
         }
         // 初始化应用

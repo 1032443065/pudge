@@ -311,11 +311,9 @@ abstract class Connection
                 if (empty($config['dsn'])) {
                     $config['dsn'] = $this->parseDsn($config);
                 }
-
                 if ($config['debug']) {
                     $startTime = microtime(true);
                 }
-
                 $this->links[$linkNum] = new PDO($config['dsn'], $config['username'], $config['password'], $params);
 
                 if ($config['debug']) {

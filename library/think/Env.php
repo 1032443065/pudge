@@ -21,12 +21,15 @@ class Env
      */
     public static function get($name, $default = null)
     {
-        $result = getenv('PHP_' . strtoupper(str_replace('.', '_', $name)));
-
-        if (false !== $result) {
-            return $result;
-        } else {
+        $name=explode('.',$name);
+        $result = getenv('PHP_' . strtoupper($name[0]));
+        if($result===false){
             return $default;
         }
+        $result=json_decode($result,true);
+        if(count($name)>1){
+            return isset($result[$name[1]])?$result[$name[1]]:$default;
+        }
+       return $result;
     }
 }
