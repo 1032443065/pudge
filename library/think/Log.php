@@ -13,7 +13,8 @@ namespace think;
 
 use think\exception\ClassNotFoundException;
 
-class Log implements LoggerInterface
+//此处遵循psr-3规范
+class Log
 {
     const EMERGENCY = 'emergency';
     const ALERT     = 'alert';

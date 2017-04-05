@@ -124,7 +124,6 @@ class App implements \ArrayAccess
         // 设置路径环境变量
         $this->setEnvPath();
     }
-
     /**
      * 设置路径到环境变量
      * @access protected
