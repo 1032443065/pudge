@@ -110,16 +110,7 @@ class App implements \ArrayAccess
 
     public function __construct($appPath = '')
     {
-        $this->container   = Container::getInstance();
-        $this->beginTime   = microtime(true);
-        $this->beginMem    = memory_get_usage();
-        $this->thinkPath   = dirname(dirname(__DIR__)) . '/';
-        $this->appPath     = $appPath ?: realpath(dirname($_SERVER['SCRIPT_FILENAME']) . '/../application') . '/';
-        $this->rootPath    = dirname(realpath($this->appPath)) . '/';
-        $this->runtimePath = $this->rootPath . 'runtime/';
-        $this->routePath   = $this->rootPath . 'route/';
-        $this->configPath  = $this->rootPath . 'config/';
-        $this->configExt   = $this->config('app.config_ext') ?: '.php';
+
 
         // 设置路径环境变量
         $this->setEnvPath();
@@ -194,10 +185,6 @@ class App implements \ArrayAccess
             Loader::addClassMap(__include_file($this->runtimePath . 'classmap.php'));
         }
 
-        // Composer自动加载支持
-        if (is_dir($this->rootPath . 'vendor/composer')) {
-            Loader::registerComposerLoader($this->rootPath . 'vendor/composer/');
-        }
 
         // 自动加载extend目录
         Loader::addAutoLoadDir($this->rootPath . 'extend');

@@ -314,7 +314,7 @@ class Route
         }
 
         if (!isset($option['complete_match'])) {
-            if ($this->app['config']->get('route_complete_match')) {
+            if ($this->app->config->get('route_complete_match')) {
                 $option['complete_match'] = true;
             } elseif ('$' == substr($rule, -1, 1)) {
                 // 是否完整匹配
