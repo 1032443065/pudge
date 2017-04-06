@@ -52,6 +52,7 @@ class Container implements \ArrayAccess
 
     /**
      * 绑定一个类实例当容器
+     * 当提供一个已经提供类名的标识时，直接绑定
      * @access public
      * @param string    $abstract    类名或者标识
      * @param object    $instance    类的实例
@@ -59,6 +60,9 @@ class Container implements \ArrayAccess
      */
     public function instance($abstract, $instance)
     {
+        if(isset($this->bind[$abstract])){
+            $abstract=$this->bind[$abstract];
+        }
         $this->instances[$abstract] = $instance;
     }
 
@@ -88,10 +92,12 @@ class Container implements \ArrayAccess
             $newInstance = true;
             $vars        = [];
         }
-
+        //如果之前实例过，直接返回
         if (isset($this->instances[$abstract]) && !$newInstance) {
             $object = $this->instances[$abstract];
-        } elseif (isset($this->bind[$abstract])) {
+        }
+        //如果没有实例过，但绑定过具体的类，就make一个
+        elseif (isset($this->bind[$abstract])) {
             $concrete = $this->bind[$abstract];
 
             if ($concrete instanceof \Closure) {
@@ -99,10 +105,13 @@ class Container implements \ArrayAccess
             } else {
                 $object = $this->make($concrete, $vars, $newInstance);
             }
-        } else {
+        }
+        //如果是彻底没有弄过，就把它当成一个类来反射
+        else {
             $object = $this->invokeClass($abstract, $vars);
-
             if (!$newInstance) {
+                //如果这个类并非显示要重新new的就保存下实例。
+                //className=>this;
                 $this->instances[$abstract] = $object;
             }
         }

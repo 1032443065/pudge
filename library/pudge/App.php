@@ -14,6 +14,7 @@ class App extends ThinkApp {
         $this->initErrorHandle();
         $this->initContainer();
         $this->initFacade();
+        $this->initAutoLoader();
         $this->initPath($appPath);
         $this->initDefaultConfig();
         parent::__construct($appPath);
@@ -63,10 +64,9 @@ class App extends ThinkApp {
     }
 
     public function initContainer() {
-        $this->container->instance('app',$this);
-        $this->container->instance('route',new \think\Route($this));
-        $this->container->instance('log',new \think\Log($this));
+        //绑定容器别名
         $this->container->bind([
+            'app' => \think\App::class,
             'build' => \think\Build::class,
             'cache' => \think\Cache::class,
             'config' => \think\Config::class,
@@ -79,10 +79,14 @@ class App extends ThinkApp {
             'validate' => \think\Validate::class,
             'session' => \think\Session::class,
             'url' => \think\Url::class,
+            'route'=>\think\Route::class,
+            'log' => \think\Log::class,
             'view' => \think\View::class,
             // 接口依赖注入
             'think\LoggerInterface' => \think\Log::class,
         ]);
+        //绑定别名之后，注入app实例
+        $this->container->instance('app',$this);
     }
 
     public function initFacade() {
