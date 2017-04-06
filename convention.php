@@ -284,6 +284,9 @@ return [
         // 是否需要进行SQL性能分析
         'sql_explain'     => false,
     ],
-
+    'crypt'=>[
+        'key'=>'32323232323232323232323232323232',
+        'cipher'=>'AES-256-CBC'
+    ],
 
 ];

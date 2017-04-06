@@ -17,6 +17,7 @@ class App extends ThinkApp {
         $this->initAutoLoader();
         $this->initPath($appPath);
         $this->initDefaultConfig();
+        $this->initService();
         parent::__construct($appPath);
     }
 
@@ -108,5 +109,14 @@ class App extends ThinkApp {
             facade\Url::class => \think\Url::class,
             facade\View::class => \think\View::class,
         ]);
+    }
+
+    public function initService() {
+        $this->container->bind('crypt',function($app){
+            $key=$app->make('config')->get('crypt.key');
+            $cipher=$app->make('config')->get('crypt.cipher');
+            return new \pudge\tool\Encrypter($key,$cipher);
+        });
+
     }
 }

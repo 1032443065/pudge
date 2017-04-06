@@ -101,6 +101,7 @@ class Container implements \ArrayAccess
             $concrete = $this->bind[$abstract];
 
             if ($concrete instanceof \Closure) {
+                array_unshift($vars,$this);
                 $object = call_user_func_array($concrete, $vars);
             } else {
                 $object = $this->make($concrete, $vars, $newInstance);

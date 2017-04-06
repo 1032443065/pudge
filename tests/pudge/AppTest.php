@@ -10,6 +10,6 @@ use PHPUnit\Framework\TestCase;
 
 class AppTest extends TestCase {
     public function testGetAppPath() {
-        //echo app()->getRootPath();
+        $this->assertStringStartsWith("/",app()->getAppPath());
     }
 }

@@ -104,7 +104,7 @@ class App implements \ArrayAccess
     protected $dispatch;
 
     /**
-     * @var Container 容器对象实例
+     * @var \think\Container 容器对象实例
      */
     protected $container;
 
