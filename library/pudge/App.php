@@ -112,10 +112,11 @@ class App extends ThinkApp {
     }
 
     public function initService() {
+        //加密解密类
         $this->container->bind('crypt',function($app){
             $key=$app->make('config')->get('crypt.key');
             $cipher=$app->make('config')->get('crypt.cipher');
-            return new \pudge\tool\Encrypter($key,$cipher);
+            return new \pudge\suit\Encrypter($key,$cipher);
         });
 
     }

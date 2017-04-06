@@ -3,7 +3,7 @@
  * Created by rozbo at 2017/4/6 上午11:13
  */
 
-namespace pudge\tool;
+namespace pudge\suit;
 
 
 class Encrypter {
