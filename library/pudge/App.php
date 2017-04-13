@@ -68,6 +68,7 @@ class App extends ThinkApp {
         //绑定容器别名
         $this->container->bind([
             'app' => \think\App::class,
+            'env' => \think\Env::class,
             'build' => \think\Build::class,
             'cache' => \think\Cache::class,
             'config' => \think\Config::class,
