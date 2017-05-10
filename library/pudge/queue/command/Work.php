@@ -19,7 +19,7 @@ use pudge\queue\Job;
 use pudge\queue\Worker;
 use Exception;
 use Throwable;
-use think\Cache;
+use think\facade\Cache;
 use think\exception\Handle;
 use think\exception\ThrowableError;
 

@@ -22,7 +22,6 @@ class Sync extends Connector
     public function push($job, $data = '', $queue = null)
     {
         $queueJob = $this->resolveJob($this->createPayload($job, $data, $queue));
-
         try {
             set_time_limit(0);
             $queueJob->fire();

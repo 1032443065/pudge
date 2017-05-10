@@ -11,7 +11,7 @@
 
 namespace pudge\queue\command;
 
-use think\Cache;
+use think\facade\Cache;
 use think\console\Command;
 use think\console\Input;
 use think\console\Output;

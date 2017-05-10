@@ -103,7 +103,7 @@ class Redis extends Connector
 
     public function pushRaw($payload, $queue = null)
     {
-        $this->redis->rPush($this->getQueue($queue), $payload);
+        $sss=$this->redis->rPush($this->getQueue($queue), $payload);
 
         return json_decode($payload, true)['id'];
     }
