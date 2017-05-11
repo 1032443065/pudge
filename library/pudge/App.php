@@ -84,6 +84,7 @@ class App extends ThinkApp {
             'route'=>\think\Route::class,
             'log' => \think\Log::class,
             'view' => \think\View::class,
+            'curl' => \pudge\helper\Curl::class,
             // 接口依赖注入
             'think\LoggerInterface' => \think\Log::class,
         ]);
