@@ -111,7 +111,6 @@ class App implements \ArrayAccess
     public function __construct($appPath = '')
     {
 
-
         // 设置路径环境变量
         $this->setEnvPath();
     }
@@ -253,9 +252,6 @@ class App implements \ArrayAccess
      */
     public function run()
     {
-        // 初始化应用
-        $this->initialize();
-
         try {
             if (defined('BIND_MODULE')) {
                 // 模块/控制器绑定
@@ -918,5 +914,12 @@ class App implements \ArrayAccess
     public function offsetUnset($key)
     {
         $this->__unset($key);
+    }
+
+    /**
+     * @return Container
+     */
+    public function getContainer(): Container {
+        return $this->container;
     }
 }

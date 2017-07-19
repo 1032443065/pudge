@@ -18,7 +18,9 @@ class App extends ThinkApp {
         $this->initPath($appPath);
         $this->initDefaultConfig();
         $this->initService();
+        $this->initialize();
         parent::__construct($appPath);
+
     }
 
     public function initPath($appPath) {
