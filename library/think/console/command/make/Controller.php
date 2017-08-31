@@ -11,9 +11,9 @@
 
 namespace think\console\command\make;
 
-use think\facade\Config;
 use think\console\command\Make;
 use think\console\input\Option;
+use think\facade\Config;
 
 class Controller extends Make
 {

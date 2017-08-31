@@ -15,17 +15,22 @@ class Facade
 {
 
     protected static $bind = [];
+    protected static $alwaysNewInstance;
 
     /**
      * 绑定类的静态代理
      * @static
      * @access public
-     * @param string    $name    代理名
-     * @param string    $class   实际类名
+     * @param string    $name    类标识
+     * @param string    $class   类名
      * @return object
      */
     public static function bind($name, $class = null)
     {
+        if (__CLASS__ != static::class) {
+            return self::__callStatic('bind', func_get_args());
+        }
+
         if (is_array($name)) {
             self::$bind = array_merge(self::$bind, $name);
         } else {
@@ -53,6 +58,10 @@ class Facade
             $class = self::$bind[$class];
         }
 
+        if (static::$alwaysNewInstance) {
+            $newInstance = true;
+        }
+
         return Container::getInstance()->make($class, $args, $newInstance);
     }
 
@@ -70,7 +79,7 @@ class Facade
     }
 
     /**
-     * 指定某个Facade类进行实例化
+     * 调用类的实例
      * @access public
      * @param string        $class          类名或者标识
      * @param array|true    $args           变量
@@ -79,6 +88,10 @@ class Facade
      */
     public static function make($class, $args = [], $newInstance = false)
     {
+        if (__CLASS__ != static::class) {
+            return self::__callStatic('make', func_get_args());
+        }
+
         if (true === $args) {
             // 总是创建新的实例化对象
             $newInstance = true;

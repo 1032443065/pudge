@@ -13,8 +13,7 @@ namespace think;
 
 use think\exception\ClassNotFoundException;
 
-//此处遵循psr-3规范
-class Log
+class Log implements LoggerInterface
 {
     const EMERGENCY = 'emergency';
     const ALERT     = 'alert';
@@ -92,6 +91,7 @@ class Log
             foreach ($context as $key => $val) {
                 $replace['{' . $key . '}'] = $val;
             }
+
             $msg = strtr($msg, $replace);
         }
 
@@ -188,16 +188,18 @@ class Log
     /**
      * 实时写入日志信息 并支持行为
      * @param mixed  $msg   调试信息
-     * @param string $level 日志级别
+     * @param string $type  日志级别
      * @param bool   $force 是否强制写入
      * @return bool
      */
-    public function write($msg, $level = 'info', $force = false)
+    public function write($msg, $type = 'info', $force = false)
     {
         // 封装日志信息
+        $log = $this->log;
+
         if (true === $force || empty($this->config['level'])) {
             $log[$type][] = $msg;
-        } elseif (in_array($level, $this->config['level'])) {
+        } elseif (in_array($type, $this->config['level'])) {
             $log[$type][] = $msg;
         } else {
             return false;
@@ -211,10 +213,10 @@ class Log
         }
 
         // 写入日志
-        $result = self::$driver->save($log);
+        $result = $this->driver->save($log);
 
         if ($result) {
-            self::$log = [];
+            $this->log = [];
         }
 
         return $result;

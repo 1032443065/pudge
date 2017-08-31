@@ -2,7 +2,7 @@
 // +----------------------------------------------------------------------
 // | ThinkPHP [ WE CAN DO IT JUST THINK IT ]
 // +----------------------------------------------------------------------
-// | Copyright (c) 2006-2016 http://thinkphp.cn All rights reserved.
+// | Copyright (c) 2006-2017 http://thinkphp.cn All rights reserved.
 // +----------------------------------------------------------------------
 // | Licensed ( http://www.apache.org/licenses/LICENSE-2.0 )
 // +----------------------------------------------------------------------
@@ -14,7 +14,8 @@ use think\console\Command;
 use think\console\Input;
 use think\console\input\Argument;
 use think\console\Output;
-use think\Facade;
+use think\Container;
+use think\facade\App;
 
 class Config extends Command
 {
@@ -36,8 +37,8 @@ class Config extends Command
             $module = '';
         }
 
-        $content = '<?php ' . PHP_EOL . $this->buildCacheContent($module);
-        $runtimePath = Facade::make('app')->getRuntimePath();
+        $content     = '<?php ' . PHP_EOL . $this->buildCacheContent($module);
+        $runtimePath = App::getRuntimePath();
         if (!is_dir($runtimePath . $module)) {
             @mkdir($runtimePath . $module, 0755, true);
         }
@@ -49,46 +50,43 @@ class Config extends Command
 
     protected function buildCacheContent($module)
     {
-        $content = '';
-        $path    = realpath(Facade::make('app')->getAppPath() . $module) . DIRECTORY_SEPARATOR;
-        $configPath = Facade::make('app')->getConfigPath();
-        $ext = Facade::make('app')->getConfigExt();
+        $content = '// This cache file is automatically generated at:' . date('Y-m-d H:i:s') . PHP_EOL;
+        $path    = realpath(App::getAppPath() . $module) . DIRECTORY_SEPARATOR;
         if ($module) {
-            // 加载模块配置
-            $config = Facade::make('config')->load($configPath . $module . 'config' . $ext);
+            $configPath = is_dir($path . 'config') ? $path . 'config' : App::getConfigPath() . $module;
+        } else {
+            $configPath = App::getConfigPath();
+        }
+        $ext    = App::getConfigExt();
+        $config = Container::get('config');
 
-            // 读取数据库配置文件
-            $filename = $configPath . $module . 'database' . $ext;
-            Facade::make('config')->load($filename, 'database');
-
-            // 加载应用状态配置
-            if ($config['app_status']) {
-                $config = Facade::make('config')->load($configPath . $module . $config['app_status'] . $ext);
-            }
-            // 读取扩展配置文件
-            if (is_dir($configPath . $module . 'extra')) {
-                $dir   = $configPath . $module . 'extra';
-                $files = scandir($dir);
-                foreach ($files as $file) {
-                    if (strpos($file, $ext)) {
-                        $filename = $dir . DIRECTORY_SEPARATOR . $file;
-                        Facade::make('config')->load($filename, pathinfo($file, PATHINFO_FILENAME));
-                    }
-                }
+        $files = scandir($configPath);
+        foreach ($files as $file) {
+            if ('.' . pathinfo($file, PATHINFO_EXTENSION) === $ext) {
+                $filename = $configPath . DIRECTORY_SEPARATOR . $file;
+                $config->load($filename, pathinfo($file, PATHINFO_FILENAME));
             }
         }
 
         // 加载行为扩展文件
-        if (is_file($configPath . $module . 'tags.php' )) {
-            $content .= '\think\Hook::import(' . (var_export(include $configPath . $module . 'tags.php', true)) . ');' . PHP_EOL;
+        if (is_file($path . 'tags.php')) {
+            $content .= PHP_EOL . '\think\facade\Hook::import(' . (var_export(include $path . 'tags.php' ?: [], true)) . ');' . PHP_EOL;
         }
 
         // 加载公共文件
-        if (is_file($path . 'common.php' )) {
-            $content .= substr(php_strip_whitespace($path . 'common.php' ), 5) . PHP_EOL;
+        if (is_file($path . 'common.php')) {
+            $common = substr(php_strip_whitespace($path . 'common.php'), 6);
+            if ($common) {
+                $content .= PHP_EOL . $common . PHP_EOL;
+            }
         }
 
-        $content .= '\think\facade\Config::set(' . var_export(\think\facade\Config::get(), true) . ');';
+        if (is_file($path . 'provider.php')) {
+            $content .= PHP_EOL . '\think\Container::getInstance()->bind(' . var_export(include $path . 'provider.php' ?: [], true) . ');' . PHP_EOL;
+        }
+
+        $content .= PHP_EOL . '\think\facade\Config::set(' . var_export($config->get(), true) . ');' . PHP_EOL;
+
         return $content;
     }
 }

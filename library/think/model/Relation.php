@@ -33,8 +33,6 @@ abstract class Relation
     protected $foreignKey;
     // 关联表主键
     protected $localKey;
-    // 关联查询参数
-    protected $option;
     // 基础查询
     protected $baseQuery;
 
@@ -49,23 +47,13 @@ abstract class Relation
     }
 
     /**
-     * 获取当前的关联模型类
+     * 获取当前的关联模型类的实例
      * @access public
-     * @return string
+     * @return Model
      */
     public function getModel()
     {
-        return $this->model;
-    }
-
-    /**
-     * 获取关联的查询对象
-     * @access public
-     * @return Query
-     */
-    public function getQuery()
-    {
-        return $this->query;
+        return $this->query->getModel();
     }
 
     /**
@@ -79,16 +67,40 @@ abstract class Relation
         return (new $this->model)->toCollection($resultSet);
     }
 
-    /**
-     * 移除关联查询参数
-     * @access public
-     * @return $this
-     */
-    public function removeOption()
+    protected function getQueryFields($model)
     {
-        $this->query->removeOption();
+        $fields = $this->query->getOptions('field');
+        return $this->getRelationQueryFields($fields, $model);
+    }
 
-        return $this;
+    protected function getRelationQueryFields($fields, $model)
+    {
+        if ($fields) {
+
+            if (is_string($fields)) {
+                $fields = explode(',', $fields);
+            }
+
+            foreach ($fields as &$field) {
+                if (false === strpos($field, '.')) {
+                    $field = $model . '.' . $field;
+                }
+            }
+        } else {
+            $fields = $model . '.*';
+        }
+
+        return $fields;
+    }
+
+    protected function getQueryWhere(&$where, $relation)
+    {
+        foreach ($where as $key => $val) {
+            if (false === strpos($key, '.')) {
+                $where[$relation . '.' . $key] = $val;
+                unset($where[$key]);
+            }
+        }
     }
 
     /**
@@ -104,18 +116,7 @@ abstract class Relation
             // 执行基础查询
             $this->baseQuery();
 
-            $result = call_user_func_array([$this->query, $method], $args);
-
-            if ($result instanceof Query) {
-                $this->option = $result->getOptions();
-
-                return $this;
-            } else {
-                $this->option    = [];
-                $this->baseQuery = false;
-
-                return $result;
-            }
+            return call_user_func_array([$this->query->getModel(), $method], $args);
         } else {
             throw new Exception('method not exists:' . __CLASS__ . '->' . $method);
         }

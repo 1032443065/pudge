@@ -36,18 +36,17 @@ class Error
      */
     public static function appException($e)
     {
-
         if (!$e instanceof \Exception) {
             $e = new ThrowableError($e);
         }
 
         self::getExceptionHandler()->report($e);
+
         if (PHP_SAPI == 'cli') {
             self::getExceptionHandler()->renderForConsole(new ConsoleOutput, $e);
         } else {
             self::getExceptionHandler()->render($e)->send();
         }
-
     }
 
     /**
@@ -83,7 +82,7 @@ class Error
         }
 
         // 写入日志
-        Facade::make('log')->save();
+        Container::get('log')->save();
     }
 
     /**
@@ -108,13 +107,17 @@ class Error
 
         if (!$handle) {
             // 异常处理handle
-            $class = Facade::make('app')->config('exception_handle');
+            $class = Container::get('app')->config('exception_handle');
             if ($class && class_exists($class) && is_subclass_of($class, "\\think\\exception\\Handle")) {
                 $handle = new $class;
             } else {
                 $handle = new Handle;
+                if ($class instanceof \Closure) {
+                    $handle->setRender($class);
+                }
             }
         }
+
         return $handle;
     }
 }

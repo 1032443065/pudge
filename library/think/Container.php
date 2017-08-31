@@ -11,7 +11,7 @@
 
 namespace think;
 
-class Container implements \ArrayAccess
+class Container
 {
     // 容器对象实例
     protected static $instance;
@@ -23,7 +23,7 @@ class Container implements \ArrayAccess
     /**
      * 获取当前容器的实例（单例）
      * @access public
-     * @return object
+     * @return static
      */
     public static function getInstance()
     {
@@ -35,35 +35,64 @@ class Container implements \ArrayAccess
     }
 
     /**
-     * 绑定一个类到容器
+     * 获取容器中的对象实例
      * @access public
-     * @param string            $abstract    类标识、接口
-     * @param string|\Closure   $concrete    要绑定的类或者闭包
-     * @return void
+     * @param string        $abstract       类名或者标识
+     * @param array|true    $args           变量
+     * @param bool          $newInstance    是否每次创建新的实例
+     * @return object
+     */
+    public static function get($abstract, $vars = [], $newInstance = false)
+    {
+        return static::getInstance()->make($abstract, $vars, $newInstance);
+    }
+
+    /**
+     * 绑定一个类、闭包、实例、接口实现到容器
+     * @access public
+     * @param string  $abstract    类标识、接口
+     * @param mixed   $concrete    要绑定的类、闭包或者实例
+     * @return Container
+     */
+    public static function set($abstract, $concrete = null)
+    {
+        return static::getInstance()->bind($abstract, $concrete);
+    }
+
+    /**
+     * 绑定一个类、闭包、实例、接口实现到容器
+     * @access public
+     * @param string  $abstract    类标识、接口
+     * @param mixed   $concrete    要绑定的类、闭包或者实例
+     * @return $this
      */
     public function bind($abstract, $concrete = null)
     {
         if (is_array($abstract)) {
             $this->bind = array_merge($this->bind, $abstract);
+        } elseif ($concrete instanceof \Closure) {
+            $this->bind[$abstract] = $concrete;
+        } elseif (is_object($concrete)) {
+            $this->instances[$abstract] = $concrete;
         } else {
             $this->bind[$abstract] = $concrete;
         }
+
+        return $this;
     }
 
     /**
      * 绑定一个类实例当容器
-     * 当提供一个已经提供类名的标识时，直接绑定
      * @access public
      * @param string    $abstract    类名或者标识
      * @param object    $instance    类的实例
-     * @return void
+     * @return $this
      */
     public function instance($abstract, $instance)
     {
-        if(isset($this->bind[$abstract])){
-            $abstract=$this->bind[$abstract];
-        }
         $this->instances[$abstract] = $instance;
+
+        return $this;
     }
 
     /**
@@ -80,7 +109,7 @@ class Container implements \ArrayAccess
     /**
      * 创建类的实例
      * @access public
-     * @param string        $class          类名或者标识
+     * @param string        $abstract       类名或者标识
      * @param array|true    $args           变量
      * @param bool          $newInstance    是否每次创建新的实例
      * @return object
@@ -92,27 +121,21 @@ class Container implements \ArrayAccess
             $newInstance = true;
             $vars        = [];
         }
-        //如果之前实例过，直接返回
+
         if (isset($this->instances[$abstract]) && !$newInstance) {
             $object = $this->instances[$abstract];
-        }
-        //如果没有实例过，但绑定过具体的类，就make一个
-        elseif (isset($this->bind[$abstract])) {
+        } elseif (isset($this->bind[$abstract])) {
             $concrete = $this->bind[$abstract];
 
             if ($concrete instanceof \Closure) {
-                array_unshift($vars,$this);
                 $object = call_user_func_array($concrete, $vars);
             } else {
                 $object = $this->make($concrete, $vars, $newInstance);
             }
-        }
-        //如果是彻底没有弄过，就把它当成一个类来反射
-        else {
+        } else {
             $object = $this->invokeClass($abstract, $vars);
+
             if (!$newInstance) {
-                //如果这个类并非显示要重新new的就保存下实例。
-                //className=>this;
                 $this->instances[$abstract] = $object;
             }
         }
@@ -184,8 +207,7 @@ class Container implements \ArrayAccess
      */
     public function invokeClass($class, $vars = [])
     {
-        $reflect = new \ReflectionClass($class);
-
+        $reflect     = new \ReflectionClass($class);
         $constructor = $reflect->getConstructor();
 
         if ($constructor) {
@@ -213,9 +235,11 @@ class Container implements \ArrayAccess
             reset($vars);
             $type   = key($vars) === 0 ? 1 : 0;
             $params = $reflect->getParameters();
+
             foreach ($params as $param) {
                 $name  = $param->getName();
                 $class = $param->getClass();
+
                 if ($class) {
                     $className = $class->getName();
                     $args[]    = $this->make($className);
@@ -232,46 +256,6 @@ class Container implements \ArrayAccess
         }
 
         return $args;
-    }
-
-    public function offsetExists($key)
-    {
-        return $this->bound($key);
-    }
-
-    public function offsetGet($key)
-    {
-        return $this->make($key);
-    }
-
-    public function offsetSet($key, $value)
-    {
-        $this->bind($key, $value);
-    }
-
-    public function offsetUnset($key)
-    {
-        $this->__unset($key);
-    }
-
-    public function __set($name, $value)
-    {
-        $this->bind($name, $value);
-    }
-
-    public function __get($name)
-    {
-        return $this->make($name);
-    }
-
-    public function __isset($name)
-    {
-        return $this->bound($name);
-    }
-
-    public function __unset($name)
-    {
-        unset($this->bind[$name], $this->instances[$name]);
     }
 
 }

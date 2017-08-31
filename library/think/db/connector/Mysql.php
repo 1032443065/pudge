@@ -75,8 +75,6 @@ class Mysql extends Connection
      */
     public function getFields($tableName)
     {
-        $this->initConnect(true);
-
         list($tableName) = explode(' ', $tableName);
 
         if (false === strpos($tableName, '`')) {
@@ -86,15 +84,8 @@ class Mysql extends Connection
             $tableName = '`' . $tableName . '`';
         }
 
-        $sql = 'SHOW COLUMNS FROM ' . $tableName;
-
-        // 调试开始
-        $this->debug(true);
-        $pdo = $this->linkID->query($sql);
-
-        // 调试结束
-        $this->debug(false, $sql);
-
+        $sql    = 'SHOW COLUMNS FROM ' . $tableName;
+        $pdo    = $this->query($sql, [], false, true);
         $result = $pdo->fetchAll(PDO::FETCH_ASSOC);
         $info   = [];
 
@@ -123,16 +114,8 @@ class Mysql extends Connection
      */
     public function getTables($dbName = '')
     {
-        $this->initConnect(true);
-        $sql = !empty($dbName) ? 'SHOW TABLES FROM ' . $dbName : 'SHOW TABLES ';
-
-        // 调试开始
-        $this->debug(true);
-        $pdo = $this->linkID->query($sql);
-
-        // 调试结束
-        $this->debug(false, $sql);
-
+        $sql    = !empty($dbName) ? 'SHOW TABLES FROM ' . $dbName : 'SHOW TABLES ';
+        $pdo    = $this->query($sql, [], false, true);
         $result = $pdo->fetchAll(PDO::FETCH_ASSOC);
         $info   = [];
 
@@ -169,18 +152,4 @@ class Mysql extends Connection
         return true;
     }
 
-    /**
-     * 是否断线
-     * @access protected
-     * @param \PDOException  $e 异常对象
-     * @return bool
-     */
-    protected function isBreak($e)
-    {
-        if (false !== stripos($e->getMessage(), 'server has gone away')) {
-            return true;
-        }
-
-        return false;
-    }
 }

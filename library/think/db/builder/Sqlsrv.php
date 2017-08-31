@@ -12,6 +12,7 @@
 namespace think\db\builder;
 
 use think\db\Builder;
+use think\db\Query;
 
 /**
  * Sqlsrv数据库驱动
@@ -21,16 +22,18 @@ class Sqlsrv extends Builder
     protected $selectSql       = 'SELECT T1.* FROM (SELECT thinkphp.*, ROW_NUMBER() OVER (%ORDER%) AS ROW_NUMBER FROM (SELECT %DISTINCT% %FIELD% FROM %TABLE%%JOIN%%WHERE%%GROUP%%HAVING%) AS thinkphp) AS T1 %LIMIT%%COMMENT%';
     protected $selectInsertSql = 'SELECT %DISTINCT% %FIELD% FROM %TABLE%%JOIN%%WHERE%%GROUP%%HAVING%';
     protected $updateSql       = 'UPDATE %TABLE% SET %SET% FROM %TABLE% %JOIN% %WHERE% %LIMIT% %LOCK%%COMMENT%';
-    protected $deleteSql       = 'DELETE FROM %TABLE% %USING% %JOIN% %WHERE% %LIMIT% %LOCK%%COMMENT%';
+    protected $deleteSql       = 'DELETE FROM %TABLE% %USING% FROM %TABLE% %JOIN% %WHERE% %LIMIT% %LOCK%%COMMENT%';
+    protected $insertSql       = 'INSERT INTO %TABLE% (%FIELD%) VALUES (%DATA%) %COMMENT%';
+    protected $insertAllSql    = 'INSERT INTO %TABLE% (%FIELD%) %DATA% %COMMENT%';
 
     /**
      * order分析
      * @access protected
-     * @param mixed $order
-     * @param array $options
+     * @param Query     $query        查询对象
+     * @param mixed     $order
      * @return string
      */
-    protected function parseOrder($order, $options = [])
+    protected function parseOrder(Query $query, $order)
     {
         if (is_array($order)) {
             $array = [];
@@ -38,13 +41,13 @@ class Sqlsrv extends Builder
             foreach ($order as $key => $val) {
                 if (is_numeric($key)) {
                     if (false === strpos($val, '(')) {
-                        $array[] = $this->parseKey($val, $options);
+                        $array[] = $this->parseKey($query, $val);
                     } elseif ('[rand]' == $val) {
-                        $array[] = $this->parseRand();
+                        $array[] = $this->parseRand($query);
                     }
                 } else {
                     $sort    = in_array(strtolower(trim($val)), ['asc', 'desc']) ? ' ' . $val : '';
-                    $array[] = $this->parseKey($key, $options) . ' ' . $sort;
+                    $array[] = $this->parseKey($query, $key) . ' ' . $sort;
                 }
             }
 
@@ -57,9 +60,10 @@ class Sqlsrv extends Builder
     /**
      * 随机排序
      * @access protected
+     * @param Query     $query        查询对象
      * @return string
      */
-    protected function parseRand()
+    protected function parseRand(Query $query)
     {
         return 'rand()';
     }
@@ -67,20 +71,21 @@ class Sqlsrv extends Builder
     /**
      * 字段和表名处理
      * @access protected
-     * @param string $key
-     * @param array  $options
+     * @param Query     $query        查询对象
+     * @param string    $key
      * @return string
      */
-    protected function parseKey($key, $options = [])
+    protected function parseKey(Query $query, $key)
     {
         $key = trim($key);
 
         if (strpos($key, '.') && !preg_match('/[,\'\"\(\)\[\s]/', $key)) {
             list($table, $key) = explode('.', $key, 2);
-            if (isset($options['alias'][$table])) {
-                $table = $options['alias'][$table];
+            $alias             = $query->getOptions('alias');
+            if (isset($alias[$table])) {
+                $table = $alias[$table];
             } elseif ('__TABLE__' == $table) {
-                $table = $this->query->getTable();
+                $table = $query->getTable();
             }
         }
 
@@ -98,10 +103,11 @@ class Sqlsrv extends Builder
     /**
      * limit
      * @access protected
-     * @param mixed $limit
+     * @param Query     $query        查询对象
+     * @param mixed     $limit
      * @return string
      */
-    protected function parseLimit($limit)
+    protected function parseLimit(Query $query, $limit)
     {
         if (empty($limit)) {
             return '';
@@ -118,11 +124,11 @@ class Sqlsrv extends Builder
         return 'WHERE ' . $limitStr;
     }
 
-    public function selectInsert($fields, $table, $options)
+    public function selectInsert(Query $query, $fields, $table)
     {
         $this->selectSql = $this->selectInsertSql;
 
-        return parent::selectInsert($fields, $table, $options);
+        return parent::selectInsert($query, $fields, $table);
     }
 
 }

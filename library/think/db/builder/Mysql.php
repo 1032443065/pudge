@@ -12,6 +12,7 @@
 namespace think\db\builder;
 
 use think\db\Builder;
+use think\db\Query;
 
 /**
  * mysql数据库驱动
@@ -23,11 +24,11 @@ class Mysql extends Builder
     /**
      * 字段和表名处理
      * @access protected
-     * @param string $key
-     * @param array  $options
+     * @param Query     $query        查询对象
+     * @param string    $key
      * @return string
      */
-    protected function parseKey($key, $options = [])
+    protected function parseKey(Query $query, $key)
     {
         $key = trim($key);
 
@@ -37,10 +38,11 @@ class Mysql extends Builder
             $key                = 'json_extract(' . $field . ', \'$.' . $name . '\')';
         } elseif (strpos($key, '.') && !preg_match('/[,\'\"\(\)`\s]/', $key)) {
             list($table, $key) = explode('.', $key, 2);
-            if (isset($options['alias'][$table])) {
-                $table = $options['alias'][$table];
+            $alias             = $query->getOptions('alias');
+            if (isset($alias[$table])) {
+                $table = $alias[$table];
             } elseif ('__TABLE__' == $table) {
-                $table = $this->query->getTable();
+                $table = $query->getTable();
             }
         }
 
@@ -49,6 +51,10 @@ class Mysql extends Builder
         }
 
         if (isset($table)) {
+            if (strpos($table, '.')) {
+                $table = str_replace('.', '`.`', $table);
+            }
+
             $key = '`' . $table . '`.' . $key;
         }
 
@@ -58,19 +64,20 @@ class Mysql extends Builder
     /**
      * field分析
      * @access protected
+     * @param Query     $query        查询对象
      * @param mixed     $fields
-     * @param array     $options
      * @return string
      */
-    protected function parseField($fields, $options = [])
+    protected function parseField(Query $query, $fields)
     {
-        $fieldsStr = parent::parseField($fields, $options);
+        $fieldsStr = parent::parseField($query, $fields);
+        $options   = $query->getOptions();
 
         if (!empty($options['point'])) {
             $array = [];
             foreach ($options['point'] as $key => $field) {
                 $key     = !is_numeric($key) ? $key : $field;
-                $array[] = 'AsText(' . $this->parseKey($key, $options) . ') AS ' . $this->parseKey($field, $options);
+                $array[] = 'AsText(' . $this->parseKey($query, $key) . ') AS ' . $this->parseKey($query, $field);
             }
             $fieldsStr .= ',' . implode(',', $array);
         }
@@ -110,9 +117,10 @@ class Mysql extends Builder
     /**
      * 随机排序
      * @access protected
+     * @param Query     $query        查询对象
      * @return string
      */
-    protected function parseRand()
+    protected function parseRand(Query $query)
     {
         return 'rand()';
     }

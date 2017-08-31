@@ -46,14 +46,15 @@ class Response
     public function __construct($data = '', $code = 200, array $header = [], $options = [])
     {
         $this->data($data);
-        $this->header = $header;
-        $this->code   = $code;
 
         if (!empty($options)) {
             $this->options = array_merge($this->options, $options);
         }
 
         $this->contentType($this->contentType, $this->charset);
+
+        $this->code   = $code;
+        $this->header = array_merge($this->header, $header);
     }
 
     /**
@@ -87,21 +88,25 @@ class Response
      */
     public function send()
     {
+        // 监听response_send
+        Container::get('hook')->listen('response_send', $this);
+
         // 处理输出数据
         $data = $this->getContent();
 
         // Trace调试注入
-        if (Env::get('app_trace', Facade::make('app')->config('app.app_trace'))) {
-            Facade::make('debug')->inject($this, $data);
+        if (Container::get('env')->get('app_trace', Container::get('app')->config('app.app_trace'))) {
+            Container::get('debug')->inject($this, $data);
         }
 
         if (200 == $this->code) {
-            $cache = Facade::make('request')->getCache();
+            $cache = Container::get('request')->getCache();
             if ($cache) {
                 $this->header['Cache-Control'] = 'max-age=' . $cache[1] . ',must-revalidate';
                 $this->header['Last-Modified'] = gmdate('D, d M Y H:i:s') . ' GMT';
                 $this->header['Expires']       = gmdate('D, d M Y H:i:s', $_SERVER['REQUEST_TIME'] + $cache[1]) . ' GMT';
-                Facade::make('cache')->set($cache[0], [$data, $this->header], $cache[1]);
+
+                Container::get('cache')->tag($cache[2])->set($cache[0], [$data, $this->header], $cache[1]);
             }
         }
 
@@ -110,7 +115,7 @@ class Response
             http_response_code($this->code);
             // 发送头部信息
             foreach ($this->header as $name => $val) {
-                header($name . ':' . $val);
+                header($name . (!is_null($val) ? ':' . $val : ''));
             }
         }
 
@@ -122,11 +127,11 @@ class Response
         }
 
         // 监听response_end
-        Facade::make('hook')->listen('response_end', $this);
+        Container::get('hook')->listen('response_end', $this);
 
         // 清空当次请求有效的数据
         if (!($this instanceof RedirectResponse)) {
-            Facade::make('session')->flush();
+            Container::get('session')->flush();
         }
     }
 

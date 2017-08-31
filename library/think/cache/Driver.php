@@ -11,6 +11,8 @@
 
 namespace think\cache;
 
+use think\Container;
+
 /**
  * 缓存基础类
  */
@@ -122,13 +124,32 @@ abstract class Driver
     public function remember($name, $value, $expire = null)
     {
         if (!$this->has($name)) {
-            if ($value instanceof \Closure) {
-                $value = call_user_func($value);
+            while ($this->has($name . '.lock')) {
+                // 存在锁定则等待
             }
-            $this->set($name, $value, $expire);
+
+            try {
+                // 锁定
+                $this->set($name . '.lock', true);
+
+                if ($value instanceof \Closure) {
+                    // 获取缓存数据
+                    $value = Container::getInstance()->invokeFunction($value);
+                }
+
+                // 缓存数据
+                $this->set($name, $value, $expire);
+
+                // 解锁
+                $this->rm($name . '.lock');
+            } catch (\Exception $e) {
+                // 解锁
+                $this->rm($name . '.lock');
+            }
         } else {
             $value = $this->get($name);
         }
+
         return $value;
     }
 
@@ -142,21 +163,28 @@ abstract class Driver
      */
     public function tag($name, $keys = null, $overlay = false)
     {
-        if (is_null($keys)) {
+        if (is_null($name)) {
+
+        } elseif (is_null($keys)) {
             $this->tag = $name;
         } else {
             $key = 'tag_' . md5($name);
+
             if (is_string($keys)) {
                 $keys = explode(',', $keys);
             }
+
             $keys = array_map([$this, 'getCacheKey'], $keys);
+
             if ($overlay) {
                 $value = $keys;
             } else {
                 $value = array_unique(array_merge($this->getTagItem($name), $keys));
             }
+
             $this->set($key, implode(',', $value));
         }
+
         return $this;
     }
 
@@ -172,8 +200,9 @@ abstract class Driver
             $key       = 'tag_' . md5($this->tag);
             $this->tag = null;
             if ($this->has($key)) {
-                $value = $this->get($key);
-                $value .= ',' . $name;
+                $value   = explode(',', $this->get($key));
+                $value[] = $name;
+                $value   = implode(',', array_unique($value));
             } else {
                 $value = $name;
             }
@@ -192,7 +221,7 @@ abstract class Driver
         $key   = 'tag_' . md5($tag);
         $value = $this->get($key);
         if ($value) {
-            return explode(',', $value);
+            return array_filter(explode(',', $value));
         } else {
             return [];
         }

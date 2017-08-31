@@ -31,12 +31,6 @@ class Cookie
     ];
 
     protected $init;
-    protected $app;
-
-    public function __construct(App $app)
-    {
-        $this->app = $app;
-    }
 
     /**
      * Cookie初始化
@@ -46,7 +40,7 @@ class Cookie
     public function init(array $config = [])
     {
         if (empty($config)) {
-            $config = $this->app['config']->pull('cookie');
+            $config = Container::get('config')->pull('cookie');
         }
 
         $this->config = array_merge($this->config, array_change_key_case($config));
@@ -93,6 +87,7 @@ class Cookie
             } elseif (is_string($option)) {
                 parse_str($option, $option);
             }
+
             $config = array_merge($this->config, array_change_key_case($option));
         } else {
             $config = $this->config;
@@ -175,6 +170,7 @@ class Cookie
             }
         } elseif (isset($_COOKIE[$key])) {
             $value = $_COOKIE[$key];
+
             if (0 === strpos($value, 'think:')) {
                 $value = substr($value, 6);
                 $value = json_decode($value, true);
