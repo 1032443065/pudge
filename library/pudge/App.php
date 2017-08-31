@@ -17,9 +17,28 @@ class App extends ThinkApp {
         $this->initAutoLoader();
         $this->initPath($appPath);
         $this->initDefaultConfig();
+        $this->initEnv();
         $this->initService();
         parent::__construct($appPath);
     }
+
+    private function initEnv() {
+        $this->env->set([
+            'think_path'   => $this->thinkPath,
+            'root_path'    => $this->rootPath,
+            'app_path'     => $this->appPath,
+            'config_path'  => $this->configPath,
+            'route_path'   => $this->routePath,
+            'runtime_path' => $this->runtimePath,
+            'extend_path'  => $this->rootPath . 'extend/',
+            'vendor_path'  => $this->rootPath . 'vendor/',
+        ]);
+        // 加载环境变量配置文件
+        if (is_file($this->rootPath . '.env')) {
+            $this->env->load($this->rootPath . '.env');
+        }
+    }
+
 
     public function initPath($appPath) {
         $this->beginTime   = microtime(true);
@@ -30,7 +49,6 @@ class App extends ThinkApp {
         $this->runtimePath = $this->rootPath . 'runtime/';
         $this->routePath   = $this->rootPath . 'route/';
         $this->configPath  = $this->rootPath . 'config/';
-        $this->configExt   = $this->config('app.config_ext') ?: '.php';
     }
     public function initDefaultConfig() {
         $this->config->set(require $this->thinkPath. 'convention.php');
@@ -73,6 +91,7 @@ class App extends ThinkApp {
             'config' => \think\Config::class,
             'cookie' => \think\Cookie::class,
             'debug' => \think\Debug::class,
+            'env'   => \think\Env::class,
             'hook' => \think\Hook::class,
             'lang' => \think\Lang::class,
             'request' => \think\Request::class,

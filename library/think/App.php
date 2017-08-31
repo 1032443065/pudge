@@ -110,54 +110,23 @@ class App implements \ArrayAccess
 
     public function __construct($appPath = '')
     {
-
-
-        // 设置路径环境变量
-        $this->setEnvPath();
     }
-    /**
-     * 设置路径到环境变量
-     * @access protected
-     * @return void
-     */
-    protected function setEnvPath()
-    {
-        $path = [
-            'root_path'  => $this->rootPath,
-            'app_path'   => $this->appPath,
-            'think_path' => $this->thinkPath,
-        ];
-
-        foreach ($path as $key => $val) {
-            $name = 'PHP_' . strtoupper($key);
-            putenv("$name=$val");
-        }
-    }
-
     /**
      * 初始化应用
      */
     public function initialize()
     {
-        // 加载环境变量配置文件
-        if (is_file($this->rootPath . '.env')) {
-            $env = parse_ini_file($this->rootPath . '.env', true);
-            foreach ($env as $key => $val) {
-                $name = 'PHP_' . strtoupper($key);
-                if (is_array($val)) {
-                    $val=json_encode($val);
-                }
-                putenv("$name=$val");
-            }
-        }
+        // 注册应用命名空间
+        $this->namespace = $this->env->get('app.app_namespace',$this->namespace);
+        Loader::addNamespace($this->namespace , $this->appPath);
+        $this->configExt   = $this->env->get('config_ext','.php');
         // 初始化应用
         $this->init();
-
         // 开启类名后缀
         $this->suffix = $this->config('app.class_suffix');
 
         // 应用调试模式
-        $this->debug = Env::get('app.app_debug', $this->config('app.app_debug'));
+        $this->debug = $this->env->get('app.app_debug', $this->config('app.app_debug'));
         if (!$this->debug) {
             ini_set('display_errors', 'Off');
         } elseif (PHP_SAPI != 'cli') {
@@ -171,9 +140,7 @@ class App implements \ArrayAccess
             }
         }
 
-        // 注册应用命名空间
-        $this->namespace = $this->config('app.app_namespace');
-        Loader::addNamespace($this->config('app.app_namespace'), $this->appPath);
+
 
         // 注册根命名空间
         if (!empty($this->config('app.root_namespace'))) {
@@ -208,7 +175,7 @@ class App implements \ArrayAccess
      * @param string $module 模块名
      * @return void
      */
-    private function init($module = '')
+    public function init($module = '')
     {
         // 定位模块目录
         $module = $module ? $module . DIRECTORY_SEPARATOR : '';
@@ -297,7 +264,7 @@ class App implements \ArrayAccess
 
             // 记录路由和请求信息
             if ($this->debug) {
-                $this->log('[ ROUTE ] ' . var_export($dispatch, true));
+                $this->log('[ ROUTE ] ' . var_export($this->request->routeinfo(), true));
                 $this->log('[ HEADER ] ' . var_export($this->request->header(), true));
                 $this->log('[ PARAM ] ' . var_export($this->request->param(), true));
             }
@@ -308,7 +275,7 @@ class App implements \ArrayAccess
             // 请求缓存检查
             $this->request->cache($this->config('app.request_cache'), $this->config('app.request_cache_expire'), $this->config('app.request_cache_except'));
 
-            $data = $this->exec($dispatch);
+            $data = $dispatch->run();
 
         } catch (HttpResponseException $exception) {
             $data = $exception->getResponse();
@@ -510,54 +477,28 @@ class App implements \ArrayAccess
     /**
      * URL路由检测（根据PATH_INFO)
      * @access public
-     * @return array
-     * @throws \think\Exception
+     * @return Dispatch
      */
     public function routeCheck()
     {
-        $path   = $this->request->path();
-        $depr   = $this->config('app.pathinfo_depr');
-        $result = false;
-
+        $path = $this->request->path();
+        $depr = $this->config('app.pathinfo_depr');
         // 路由检测
-        $check = !is_null($this->routeCheck) ? $this->routeCheck : $this->config('app.url_route_on');
-
-        if ($check) {
-            // 开启路由
-            if (is_file($this->runtimePath . 'route.php')) {
-                // 读取路由缓存
-                $rules = include $this->runtimePath . 'route.php';
+        $files = scandir($this->routePath);
+        foreach ($files as $file) {
+            if (strpos($file, '.php')) {
+                $filename = $this->routePath . DIRECTORY_SEPARATOR . $file;
+                // 导入路由配置
+                $rules = include $filename;
                 if (is_array($rules)) {
-                    $this->route->rules($rules);
-                }
-            } else {
-                $files = scandir($this->routePath);
-                foreach ($files as $file) {
-                    if (strpos($file, '.php')) {
-                        $filename = $this->routePath . DIRECTORY_SEPARATOR . $file;
-                        // 导入路由配置
-                        $rules = include $filename;
-                        if (is_array($rules)) {
-                            $this->route->import($rules);
-                        }
-                    }
+                    $this->route->import($rules);
                 }
             }
-
-            // 路由检测（根据路由定义返回不同的URL调度）
-            $result = $this->route->check($this->request, $path, $depr, $this->config('app.url_domain_deploy'));
-            $must   = !is_null($this->routeMust) ? $this->routeMust : $this->config('app.url_route_must');
-
-            if ($must && false === $result) {
-                // 路由无效
-                throw new RouteNotFoundException();
-            }
         }
-        if (false === $result) {
-            // 路由无效 解析模块/控制器/操作/参数... 支持控制器自动搜索
-            $result = $this->route->parseUrl($path, $depr, $this->config('app.controller_auto_search'));
-        }
-        return $result;
+        // 是否强制路由模式
+        $must = !is_null($this->routeMust) ? $this->routeMust : $this->config('app.url_route_must');
+        // 路由检测 返回一个Dispatch对象
+        return $this->route->check($path, $depr, $must, $this->config('app.route_complete_match'));
     }
 
     /**

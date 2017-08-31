@@ -10,6 +10,7 @@
 // +----------------------------------------------------------------------
 
 namespace think;
+use pudge\log\LoggerInterface;
 
 use think\exception\ClassNotFoundException;
 

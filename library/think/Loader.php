@@ -55,10 +55,10 @@ class Loader
             self::addClassMap(__include_file($rootPath . 'runtime/classmap.php'));
         }
 
-        // Composer自动加载支持
-        if (is_dir($rootPath . 'vendor/composer')) {
-            self::registerComposerLoader($rootPath . 'vendor/composer/');
-        }
+//        // Composer自动加载支持
+//        if (is_dir($rootPath . 'vendor/composer')) {
+//            self::registerComposerLoader($rootPath . 'vendor/composer/');
+//        }
 
         // 自动加载extend目录
         self::addAutoLoadDir($rootPath . 'extend');
