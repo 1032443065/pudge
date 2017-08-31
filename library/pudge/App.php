@@ -6,20 +6,22 @@
 namespace pudge;
 
 use think\App as ThinkApp;
-use think\facade;
+use think\Facade;
 
 class App extends ThinkApp {
     public function __construct($appPath) {
+        $this->initAutoLoader();
         $this->container   = \think\Container::getInstance();
         $this->initErrorHandle();
         $this->initContainer();
         $this->initFacade();
-        $this->initAutoLoader();
         $this->initPath($appPath);
         $this->initDefaultConfig();
         $this->initEnv();
         $this->initService();
+        $this->initialize();
         parent::__construct($appPath);
+
     }
 
     private function initEnv() {
@@ -57,24 +59,24 @@ class App extends ThinkApp {
     public function initAutoLoader() {
         \think\Loader::register();
         \think\Loader::addClassAlias([
-            'App'      => facade\App::class,
-            'Build'    => facade\Build::class,
-            'Cache'    => facade\Cache::class,
-            'Config'   => facade\Config::class,
-            'Cookie'   => facade\Cookie::class,
-            'Db'       => Db::class,
-            'Debug'    => facade\Debug::class,
-            'Env'      => Env::class,
-            'Facade'   => Facade::class,
-            'Hook'     => facade\Hook::class,
-            'Lang'     => facade\Lang::class,
-            'Log'      => facade\Log::class,
-            'Request'  => facade\Request::class,
-            'Response' => facade\Response::class,
-            'Route'    => facade\Route::class,
-            'Session'  => facade\Session::class,
-            'Url'      => facade\Url::class,
-            'View'     => facade\View::class,
+            'App'      => \think\facade\App::class,
+            'Build'    => \think\facade\Build::class,
+            'Cache'    => \think\facade\Cache::class,
+            'Config'   => \think\facade\Config::class,
+            'Cookie'   => \think\facade\Cookie::class,
+            'Db'       => \think\Db::class,
+            'Debug'    => \think\facade\Debug::class,
+            'Env'      => \think\Env::class,
+            'Facade'   => \think\Facade::class,
+            'Hook'     => \think\facade\Hook::class,
+            'Lang'     => \think\facade\Lang::class,
+            'Log'      => \think\facade\Log::class,
+            'Request'  => \think\facade\Request::class,
+            'Response' => \think\facade\Response::class,
+            'Route'    => \think\facade\Route::class,
+            'Session'  => \think\facade\Session::class,
+            'Url'      => \think\facade\Url::class,
+            'View'     => \think\facade\View::class,
         ]);
     }
     public function initErrorHandle() {
@@ -86,6 +88,7 @@ class App extends ThinkApp {
         //绑定容器别名
         $this->container->bind([
             'app' => \think\App::class,
+            'env' => \think\Env::class,
             'build' => \think\Build::class,
             'cache' => \think\Cache::class,
             'config' => \think\Config::class,
@@ -102,6 +105,7 @@ class App extends ThinkApp {
             'route'=>\think\Route::class,
             'log' => \think\Log::class,
             'view' => \think\View::class,
+            'curl' => \pudge\helper\Curl::class,
             // 接口依赖注入
             'think\LoggerInterface' => \think\Log::class,
         ]);
@@ -112,21 +116,21 @@ class App extends ThinkApp {
     public function initFacade() {
 // 注册核心类的静态代理
         Facade::bind([
-            facade\App::class => \think\App::class,
-            facade\Build::class => \think\Build::class,
-            facade\Cache::class => \think\Cache::class,
-            facade\Config::class => \think\Config::class,
-            facade\Cookie::class => \think\Cookie::class,
-            facade\Debug::class => \think\Debug::class,
-            facade\Hook::class => \think\Hook::class,
-            facade\Lang::class => \think\Lang::class,
-            facade\Log::class => \think\Log::class,
-            facade\Request::class => \think\Request::class,
-            facade\Response::class => \think\Response::class,
-            facade\Route::class => \think\Route::class,
-            facade\Session::class => \think\Session::class,
-            facade\Url::class => \think\Url::class,
-            facade\View::class => \think\View::class,
+            \think\facade\App::class => \think\App::class,
+            \think\facade\Build::class => \think\Build::class,
+            \think\facade\Cache::class => \think\Cache::class,
+            \think\facade\Config::class => \think\Config::class,
+            \think\facade\Cookie::class => \think\Cookie::class,
+            \think\facade\Debug::class => \think\Debug::class,
+            \think\facade\Hook::class => \think\Hook::class,
+            \think\facade\Lang::class => \think\Lang::class,
+            \think\facade\Log::class => \think\Log::class,
+            \think\facade\Request::class => \think\Request::class,
+            \think\facade\Response::class => \think\Response::class,
+            \think\facade\Route::class => \think\Route::class,
+            \think\facade\Session::class => \think\Session::class,
+            \think\facade\Url::class => \think\Url::class,
+            \think\facade\View::class => \think\View::class,
         ]);
     }
 
