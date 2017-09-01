@@ -104,6 +104,7 @@ class App extends ThinkApp {
             'url' => \think\Url::class,
             'route'=>\think\Route::class,
             'log' => \think\Log::class,
+            'validate' => \think\Validate::class,
             'view' => \think\View::class,
             'curl' => \pudge\helper\Curl::class,
             // 接口依赖注入
@@ -130,6 +131,7 @@ class App extends ThinkApp {
             \think\facade\Route::class => \think\Route::class,
             \think\facade\Session::class => \think\Session::class,
             \think\facade\Url::class => \think\Url::class,
+            \think\facade\Validate::class => \think\Validate::class,
             \think\facade\View::class => \think\View::class,
         ]);
     }

@@ -167,6 +167,9 @@ class Domain extends RuleGroup
             } elseif (0 === strpos($bind, ':')) {
                 // 绑定到命名空间
                 return $this->bindToNamespace($url, substr($bind, 1), $depr);
+            }else {
+                // 路由到模块/控制器
+                //return $this->bindToModule($url, $bind, $depr);
             }
         }
 
@@ -241,21 +244,22 @@ class Domain extends RuleGroup
      * 绑定到模块/控制器
      * @access public
      * @param string    $url URL地址
-     * @param string    $controller 控制器类名（带命名空间）
+     * @param string    $module 控制器类名（带命名空间）
      * @param string    $depr URL分隔符
      * @return ModuleDispatch
      */
-    public function bindToModule($url, $controller, $depr = '/')
+    public function bindToModule($url, $module, $depr = '/')
     {
         $url    = str_replace($depr, '|', $url);
-        $array  = explode('|', $url, 2);
-        $action = !empty($array[0]) ? $array[0] : Container::get('config')->get('default_action');
 
-        if (!empty($array[1])) {
-            $this->parseUrlParams($array[1]);
+        $array  = explode('|', $url, 3);
+        $controller = !empty($array[0]) ? $array[0] : Container::get('config')->get('default_controller');
+        $action = !empty($array[1]) ? $array[1] : Container::get('config')->get('default_action');
+        if (!empty($array[2])) {
+            $this->parseUrlParams($array[2]);
         }
 
-        return new ModuleDispatch($controller . '/' . $action);
+        return new ModuleDispatch($module.'/'.$controller . '/' . $action);
     }
 
 }
