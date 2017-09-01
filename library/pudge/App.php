@@ -20,6 +20,7 @@ class App extends ThinkApp {
         $this->initEnv();
         $this->initService();
         parent::__construct($appPath);
+        $this->initialize();
 
     }
 

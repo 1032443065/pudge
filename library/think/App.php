@@ -220,9 +220,6 @@ class App implements \ArrayAccess
      */
     public function run()
     {
-        // 初始化应用
-        $this->initialize();
-
         try {
             if (defined('BIND_MODULE')) {
                 // 模块/控制器绑定
