@@ -19,7 +19,6 @@ class App extends ThinkApp {
         $this->initDefaultConfig();
         $this->initEnv();
         $this->initService();
-        $this->initialize();
         parent::__construct($appPath);
 
     }
