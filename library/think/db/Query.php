@@ -61,7 +61,6 @@ class Query
         } else {
             $this->connection = $connection;
         }
-
         $this->prefix = $this->connection->getConfig('prefix');
     }
 
@@ -143,7 +142,7 @@ class Query
     public function setConnection(Connection $connection)
     {
         $this->connection = $connection;
-
+        $this->prefix = $this->connection->getConfig('prefix');
         return $this;
     }
 
@@ -217,7 +216,7 @@ class Query
     public function connect($config = [], $name = false)
     {
         $this->connection = Connection::instance($config, $name);
-
+        $this->prefix = $this->connection->getConfig('prefix');
         return $this;
     }
 

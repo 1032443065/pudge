@@ -838,7 +838,7 @@ abstract class Builder
             $value    = array_values($data);
             $values[] = 'SELECT ' . implode(',', $value);
         }
-
+        unset($fields);
         foreach (array_keys(reset($dataSet)) as $field) {
             $fields[] = $this->parseKey($query, $field);
         }
