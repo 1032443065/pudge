@@ -1513,15 +1513,15 @@ class Query
     /**
      * 查询缓存
      * @access public
-     * @param mixed   $key    缓存key
-     * @param integer $expire 缓存有效期
-     * @param string  $tag    缓存标签
+     * @param mixed             $key    缓存key
+     * @param integer|\DateTime $expire 缓存有效期
+     * @param string            $tag    缓存标签
      * @return $this
      */
     public function cache($key = true, $expire = null, $tag = null)
     {
         // 增加快捷调用方式 cache(10) 等同于 cache(true, 10)
-        if (is_numeric($key) && is_null($expire)) {
+        if ($key instanceof \DateTime || (is_numeric($key) && is_null($expire))) {
             $expire = $key;
             $key    = true;
         }
@@ -2193,6 +2193,33 @@ class Query
     }
 
     /**
+     * 使用游标查找记录
+     * @access public
+     * @param array|string|Query|\Closure $data
+     * @return \Generator
+     */
+    public function cursor($data = null)
+    {
+        if ($data instanceof \Closure) {
+            $data($this);
+            $data = null;
+        }
+
+        $this->parseOptions();
+
+        if (!is_null($data)) {
+            // 主键条件分析
+            $this->parsePkWhere($data);
+        }
+
+        $this->options['data'] = $data;
+
+        $connection = clone $this->connection;
+
+        return $connection->cursor($this);
+    }
+
+    /**
      * 查找记录
      * @access public
      * @param array|string|Query|\Closure $data
@@ -2387,6 +2414,7 @@ class Query
      * @param string   $column   分批处理的字段名
      * @param string   $order    字段排序
      * @return boolean
+     * @throws DbException
      */
     public function chunk($count, $callback, $column = null, $order = 'asc')
     {
@@ -2403,8 +2431,15 @@ class Query
             $column = $column[0];
         }
 
+        if (isset($options['order'])) {
+            if (Container::get('app')->isDebug()) {
+                throw new DbException('chunk not support call order');
+            }
+            unset($options['order']);
+        }
+
         $bind      = $this->bind;
-        $resultSet = $this->limit($count)->order($column, $order)->select();
+        $resultSet = $this->options($options)->limit($count)->order($column, $order)->select();
 
         if (strpos($column, '.')) {
             list($alias, $key) = explode('.', $column);

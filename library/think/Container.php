@@ -90,8 +90,8 @@ class Container
      */
     public function instance($abstract, $instance)
     {
-        if(isset($this->bind[$abstract])){
-            $abstract=$this->bind[$abstract];
+        if (isset($this->bind[$abstract])) {
+            $abstract = $this->bind[$abstract];
         }
         $this->instances[$abstract] = $instance;
 
@@ -124,11 +124,10 @@ class Container
             $newInstance = true;
             $vars        = [];
         }
-        //如果之前实例过，直接返回
+
         if (isset($this->instances[$abstract]) && !$newInstance) {
             $object = $this->instances[$abstract];
-        }else{
-            //如果没有实例过，但绑定过具体的类，就make一个
+        } else {
             if (isset($this->bind[$abstract])) {
                 $concrete = $this->bind[$abstract];
 
@@ -137,17 +136,14 @@ class Container
                 } else {
                     $object = $this->make($concrete, $vars, $newInstance);
                 }
-            }
-            //如果是彻底没有弄过，就把它当成一个类来反射
-            else {
+            } else {
                 $object = $this->invokeClass($abstract, $vars);
             }
-            //如果不是每次创建新的实例的话，就缓存下来。
+
             if (!$newInstance) {
                 $this->instances[$abstract] = $object;
             }
         }
-
 
         return $object;
     }
