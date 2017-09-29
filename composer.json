@@ -1,5 +1,5 @@
 {
-    "name": "rozbo/pudge",
+    "name": "1032443065/pudge",
     "description": "the pudge base on thinkphp framework",
     "type": "pudge-framework",
     "keywords": [
@@ -7,12 +7,11 @@
         "pudge",
         "ORM"
     ],
-    "homepage": "http://puck.zz173.com/",
     "license": "Apache-2.0",
     "authors": [
         {
-            "name": "rozbo",
-            "email": "75200306@qq.com"
+            "name": "1032443065",
+            "email": "1032443065@qq.com"
         }
     ],
     "require": {
